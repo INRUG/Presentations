@@ -1,0 +1,208 @@
+
+<!-- https://github.com/ajlyons/rpres_css -->
+<style>
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+.small-code pre code {
+  font-size: 1em;
+}
+
+
+</style>
+
+
+
+RMarkdown & Knitr
+===============
+author: Rollie Parrish
+date: Dec 5, 2014
+
+
+
+Overview
+===============
+- R Markdown used to generate dynamic documents from R
+- Depends on:
+    - Rmarkdown & knitr packages
+    - Pandoc & RStudio
+
+![](RMarkdown-figure/2014-11-30_175325.png)
+
+R Markdown
+================
+
+### Basic Markdown
+- narrative content written in plain text
+- basic formatting using a simple syntax
+- Markdown is commonly used in web content
+    (blogging, Wikipedia content, etc.)
+
+### R code chunks
+- incorporates the results of R code
+
+### Rendered into final output
+- html / pdf / Word / Presentations (like this one)
+
+
+Inline Example
+================
+
+```{r, eval=FALSE, results='asis'}
+### Results
+2 + 2 = `r 2 + 2`
+
+```
+
+
+### Results
+
+2 + 2 = `r 2 + 2`
+
+Knitr
+================
+
+Processes the R Code chunks along with R Markdown to produce final output
+
+"Chuck options" control how the R code is processed.
+
+
+Example: Graphics
+================
+```
+{r plot1, fig.width=10, fig.align='center'}
+```
+
+```{r plot1, echo=FALSE, fig.width=10, fig.align='center'}
+
+boxplot(InsectSprays$count ~ InsectSprays$spray,
+                 main = "Insect Spray data",
+                 xlab = "type of spray",
+                 ylab = "count of insects")
+
+```
+
+
+Example: Graphics
+=================
+```
+{r plot2, fig.width=5, fig.align='right'}
+```
+
+```{r plot2, echo=FALSE, fig.width=5, fig.align='right'}
+
+boxplot(InsectSprays$count ~ InsectSprays$spray,
+                 main = "Insect Spray data",
+                 xlab = "type of spray",
+                 ylab = "count of insects")
+
+
+```
+
+
+
+A More Elaborate Example
+================
+class: small-cod
+
+__Question__
+Is the percentage of smokers significantly different between groups of patients?
+
+__Data__ The count of patients and the count of smokers.
+
+```{r prop_test, comment=""}
+conf.level <- 0.99
+smokers  <- c( 80, 84)#, 129, 90)
+patients <- c( 86, 93)#, 136, 120)
+
+
+
+```
+
+
+
+A More Elaborate Example
+================
+class: small-code
+
+
+```{r results, echo = TRUE}
+results <- prop.test(smokers, patients)
+results
+
+```
+
+
+
+A More Elaborate Example
+=====================
+class: small-code
+
+_results are assigned to variables so we can insert the elements inline_
+
+```{r results_values, echo=TRUE}
+
+estimates <- paste(round(results$estimate * 100,1),"%",
+                   collapse=" vs. ", sep="")
+p_value <- ifelse(results$p.value < .001,
+                  0.001, round(results$p.value,3))
+p_eq_lt <- ifelse(p_value > .001,
+                  "=", "<")
+p_sig <- ifelse(p_value > 1-conf.level,
+                "not", "")
+
+
+```
+
+### Results
+```{r results_values_table, echo=FALSE, results='asis'}
+library(knitr)
+kable(data.frame( p_value, p_eq_lt, p_sig, estimates))
+```
+
+
+A More Elaborate Example
+================
+
+```{r, eval=FALSE, results='asis'}
+
+This example evaluates the smoking status from `r length(patients)` groups of patients.
+
+Chi-square analysis indicates the proportions of smokers are `r p_sig` significantly different between groups
+(`r estimates`, $p$-value `r paste(p_eq_lt, p_value)`).
+```
+
+
+This example includes the smoking status from `r length(patients)` groups of patients. Chi-square analysis indicates the proportions of smokers are `r p_sig` significantly different between groups (`r estimates`, $p$-value `r paste(p_eq_lt, p_value)`).
+
+
+
+
+
+Additional Resources
+=================
+
+- http://rmarkdown.rstudio.com/
+
+- http://yihui.name/knitr/
+
+- http://shiny.rstudio.com/articles/rmarkdown.html
+
+
+
+
+
+
+
+
+
+
