@@ -1,0 +1,93 @@
+---
+title: "Seattle 911 data"
+author: "Rollie Parrish"
+date: "Saturday, November 29, 2014"
+output: html_document
+---
+
+```{r load_data, warning=FALSE, message=FALSE, cache=TRUE}
+start_time <- Sys.time()
+mydata <- read.csv("http://data.seattle.gov/api/views/v7yw-9wph/rows.csv?accessType=DOWNLOAD",
+                   stringsAsFactors=FALSE)
+
+mydata <- mydata[which(!grepl("T", mydata$Datetime)), ]
+
+mydata$Type <- as.factor(mydata$Type)
+mydata$Datetime <- strptime(as.character(mydata$Datetime), "%m/%d/%Y %I:%M:%S %p +0000")
+
+elapsed_seconds <- as.numeric(difftime(Sys.time(), start_time, units="secs"))
+
+paste0(format(nrow(mydata), big.mark=",", scientific=FALSE, trim=TRUE),
+                             " records were read in ",
+                             round(elapsed_seconds, 1), " seconds."
+       )
+
+summary(mydata)
+```
+
+```{r summary, eval=FALSE, comment=""}
+summary(mydata)
+
+library(dplyr)
+mydata <- tbl_df(mydata)
+
+
+library(lubridate)
+
+mydata$month_start = as.Date(floor_date(mydata$Datetime, unit = "month"))
+mydata$month_year = paste(format(mydata$month_start, "%Y"), format(mydata$month_start, "%m"))
+
+orig <- mydata
+mydata <- orig
+
+mydata <- mydata[mydata$Address == "318 2nd Av Et  S", ]
+mydata <- mydata[mydata$Type == "Aid Response", ]
+
+top_addresses <-
+    mydata %>%
+    select(month_start, Type, Address) %>%
+    group_by(Address = as.factor(Address)) %>%
+    summarise(n = n()) %>%
+    arrange(desc(n)) %>%
+    top_n(10)
+
+types <-
+    mydata %>%
+    inner_join(top_addresses) %>%
+    select(Type, Address) %>%
+    group_by(Type, Address = as.factor(Address)) %>%
+    summarise(n = n()) %>%
+    arrange(desc(n)) %>%
+    top_n(10)
+
+
+types
+
+type <- "Trans to AMR"
+
+trend_plot <- function(type=NULL, address=NULL...) {
+    trends <-
+        mydata %>%
+        inner_join(types) #%>%
+        inner_join(top_addresses) %>%
+        unique(.) %>%
+        select(month_start, Type, Address) %>%
+        filter(Address == address) %>%
+        filter(!is.na(month_start)) %>%
+        filter(Type == type) %>%
+        group_by(month_start ) %>%
+        summarise(n = n())
+
+    plot(trends$n ~ trends$month_start, type = "l",
+         main = type,
+         xlab = "Year",
+         ylab = "Number of calls")
+}
+
+
+for (i in types$Type) {
+    trend_plot(i, address="318 2nd Av Et  S")
+    readline(prompt = "Pause. Press <Enter> to continue...")
+}
+```
+
