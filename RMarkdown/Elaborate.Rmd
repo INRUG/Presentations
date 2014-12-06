@@ -1,0 +1,63 @@
+---
+title: "A More Elaborate Example"
+output: html_document
+---
+
+### Question
+Is the percentage of smokers significantly different between groups of patients?
+
+### Data
+
+```{r prop_test, comment="", echo=FALSE}
+smokers  <- c( 80, 84, 129, 90)
+patients <- c( 86, 93, 136, 120)
+
+smokers_percent <- paste0(round(smokers/patients * 100,1),"%")
+
+conf.level <- 0.99
+results <- prop.test(smokers,
+                     patients,
+                     conf.level = conf.level)
+
+estimates <- paste(round(results$estimate * 100,1),"%",
+                   collapse=" vs. ",
+                   sep="")
+
+
+p_value <- ifelse(results$p.value < .001,
+                  0.001,
+                  round(results$p.value,3))
+
+p_eq_lt <- ifelse(p_value > .001,
+                  "=",
+                  "<")
+
+p_sig <- ifelse(p_value > 1-conf.level,
+                "not",
+                "")
+
+
+```
+
+
+
+```{r table, results='asis', echo=FALSE}
+mydata <- data.frame(Smokers = smokers,
+                     Total_Patients = patients,
+                     Percent_Smokers = smokers_percent)
+
+knitr::kable(mydata,
+             row.names = TRUE,
+             align = c('c', 'c', 'c'))
+```
+
+### Results
+This example includes the smoking status from `r length(patients)` groups of patients. ${\chi}^2$ analysis of the proportion of smokers vs non-smokers indicate they are `r p_sig` significantly different between groups (`r estimates`, $p$-value `r paste(p_eq_lt, p_value)`, `r paste0(round(conf.level*100,0),"%")` confidence level).
+
+
+```{r prop_test_results, eval=FALSE, echo=FALSE, comment="   "}
+
+results
+```
+
+
