@@ -1,0 +1,19 @@
+---
+output: html_document
+params: 
+  carrier: "AA" 
+title: "Departure Delay Report for `r params$carrier`"
+---
+
+```{r setup, include=TRUE, echo = FALSE, message = FALSE, warning = FALSE}
+source("load_data.R")
+
+```
+
+```{r, results = 'asis', echo = FALSE}
+carrier_median_delay %>%
+    glue_data("At {origin}, the median departure delay for {params$carrier} was {median_dep_delay} minutes.</BR>")
+    
+kable(carrier_table)
+
+```
